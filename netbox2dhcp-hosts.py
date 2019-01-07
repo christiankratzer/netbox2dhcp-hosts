@@ -21,12 +21,22 @@ def hosts( subnet ):
         r = res.json()
         if r:
             for ipaddress in r.get('results'):
+                if not ipaddress.get('interface'):
+                    continue
+
                 interface_url = ipaddress.get('interface',{}).get('url')
                 res = requests.get( interface_url, **requests_opts )
                 interface = res.json()
                 ip = ipaddress.get('address')
                 mac = interface.get('mac_address')
-                name = interface.get('device',{}).get('name')
+
+                if interface.get('device'):
+                    name = interface.get('device',{}).get('name')
+                elif interface.get('virtual_machine'):
+                    name = interface.get('virtual_machine',{}).get('name')
+                else:
+                    continue
+
                 if ip and mac and name:
                     args = {
                         'address': ip.split('/')[0],
